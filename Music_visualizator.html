@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Music</title>
+    <style>
+    .app{
+        display:grid;
+        grid-template-columns: repeat(16, auto);
+        grid-gap: 2px;
+
+    }
+    .app div{
+        border: 1px solid black;
+        height:50px;
+    }
+    .controls{
+        display:grid;
+        grid-template-columns: repeat(2, auto);
+        grid-gap: 2px;
+        margin-top:10px;
+    }
+    .play{
+        background-color: green;
+    }
+    .stop{
+        background-color: red;
+    }
+    </style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<div id="controls" class="controls">
+    <button id="play" class="play">Play</button>
+    <button id="stop" class="stop">Stop</button>
+</div>  
+<script>
+let app = document.getElementById('app');
+let div;
+let blocks;
+let color;
+let qtyColorBlocks;
+let colorsArr = [];
+let audioSample = new Audio('../Music visualizator/sample.mp3');
+
+//создаем сетку
+for (let i=1;i<145;i++){
+    div = document.createElement('div');
+    app.appendChild(div);
+}
+
+colorsArr = ['blue', 'yellow', 'red', 'green', 'violet', 'orange', 'cyan'];
+
+// let playBtn = document.getElementById('play');
+// playBtn.addEventListener('click', audioPlay);
+
+let stopBtn = document.getElementById('stop');
+stopBtn.addEventListener('click', audioStop);
+
+// function audioPlay(){
+//     audioSample.play();
+//     audioSample.addEventListener('', paintBlocks)
+// }
+
+function audioStop(){
+    audioSample.stop();
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+function paintBlocks(){
+    blocks = app.querySelectorAll('div');
+    blocks.forEach(item => {
+        color = getRandomInt(colorsArr.length);
+        item.style.backgroundColor = colorsArr[color];
+    })
+    
+}
+paintBlocks();
+</script> 
+</body>
+</html>
