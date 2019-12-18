@@ -6,6 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Music</title>
     <style>
+    body{
+        font-family: Arial;
+    }
     .app{
         display:grid;
         grid-template-columns: repeat(16, auto);
@@ -13,74 +16,107 @@
 
     }
     .app div{
-        border: 1px solid black;
+        border: 1px solid gray;
         height:50px;
     }
-    .controls{
-        display:grid;
-        grid-template-columns: repeat(2, auto);
-        grid-gap: 2px;
-        margin-top:10px;
+    audio{
+        width:100%;
     }
-    .play{
-        background-color: green;
+    .theme{
+        margin-bottom:10px;
     }
-    .stop{
-        background-color: red;
+    .eqTable{
+        margin-bottom:10px;
     }
     </style>
 </head>
 <body>
 <div id="app" class="app"></div>
-<div id="controls" class="controls">
-    <button id="play" class="play">Play</button>
-    <button id="stop" class="stop">Stop</button>
-</div>  
+<div id="content" class="content">
+    <audio id="audio" controls></audio>
+    <div class="theme">
+        <label class="themeLogo" for="theme">Выберите тему</label>
+        <select id="themeOptions" name="theme" class="themeOptions">
+            <option value="5">5 цветов</option>
+            <option value="10" selected>10 цветов</option>
+            <option value="15">15 цветов</option>
+        </select>
+    </div>
+    <input type="file" id="chooseFile" accept="audio/*">
+</div>
+
 <script>
 let app = document.getElementById('app');
-let div;
-let blocks;
-let color;
-let qtyColorBlocks;
-let colorsArr = [];
-let audioSample = new Audio('../Music visualizator/sample.mp3');
+let file = document.getElementById("chooseFile");
+let audio = document.getElementById("audio");
+let theme = document.getElementById('themeOptions');
+// let newFreqArr = [];
 
-//создаем сетку
-for (let i=1;i<145;i++){
-    div = document.createElement('div');
-    app.appendChild(div);
-}
+let colorsArr, cellsQ, blocks, array, context, analyser, src, freq;
+colorsArr = ['#f50707', '#f57e07', '#33f507', '#07f5e1', '#a207f5', '#ffdd00', '#99ff00', '#08fc65', '#08cffc', '#c014f5'];let arr1 =[];
+cellsQ = 144; //кол-во ячеек
 
-colorsArr = ['blue', 'yellow', 'red', 'green', 'violet', 'orange', 'cyan'];
+theme.addEventListener('change', () => {
+    
+    switch (theme.value) {
+  case '5': colorsArr = ['#f50707', '#f57e07', '#33f507', '#07f5e1', '#a207f5'];
+    break;
+  case '10': colorsArr = ['#f50707', '#f57e07', '#33f507', '#07f5e1', '#a207f5', '#ffdd00', '#99ff00', '#08fc65', '#08cffc', '#c014f5'];
+    break;
+  case '15': colorsArr = ['#f50707', '#f57e07', '#33f507', '#07f5e1', '#a207f5', '#ffdd00', '#99ff00', '#08fc65', '#08cffc', '#c014f5', '#e356a8', '#fa141f', '#14fadf', '#eaf516', '#036b15'];
+    break;
+    }
+})
 
-// let playBtn = document.getElementById('play');
-// playBtn.addEventListener('click', audioPlay);
+file.onchange = function(){
+    if(context) return;
+    
+    let files = this.files;
+    audio.src = URL.createObjectURL(files[0]);
+    audio.load();
+    audio.play();
 
-let stopBtn = document.getElementById('stop');
-stopBtn.addEventListener('click', audioStop);
+    for(let i = 0 ; i < cellsQ ; i++){ //создаем сетку
+       let div = document.createElement('div');
+       app.appendChild(div);
+       div.className = 'cell';
+     }
 
-// function audioPlay(){
-//     audioSample.play();
-//     audioSample.addEventListener('', paintBlocks)
-// }
+    blocks = document.getElementsByClassName('cell');
+    
+    context = new AudioContext();
+    analyser = context.createAnalyser();
+    src = context.createMediaElementSource(audio); //откуда берем медиа-ресурс
+    src.connect(analyser);
+    analyser.connect(context.destination); //подключение к колонкам
+    // analyser.fftSize = 256;
+    let bufferLength = analyser.frequencyBinCount;
+    array = new Uint8Array(bufferLength); //создаем массив частот
+    setInterval(render, 300);
 
-function audioStop(){
-    audioSample.stop();
-}
+//функция отрисовки эквалайзера
+function render() {
+    analyser.getByteFrequencyData(array);
+
+    for(let i = 0 ; i < cellsQ ; i++){
+        //хотел создать массив усредненных частот пропорционально кол-ву ячеек в стеке для отображения
+        // но у массива Uint8Array почему-то нет метода split, а дедлайн близок)
+        // поэтому текущий эквалайзер отображает изменение не всего диапазона частот, к сожалению
+        // let delElem = array.splice(0, Math.floor(length/cellsQ)).reduce((sum, current) => sum + current, 0);
+        // newFreqArr.push(delElem);
+        // delElem = null;
+        freq = array[i];
+        blocks[i].style.opacity = 0.006*freq;
+        colorPos = getRandomInt(colorsArr.length);
+        blocks[i].style.backgroundColor = colorsArr[colorPos];
+    }
+} 
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
-}
+} 
 
-function paintBlocks(){
-    blocks = app.querySelectorAll('div');
-    blocks.forEach(item => {
-        color = getRandomInt(colorsArr.length);
-        item.style.backgroundColor = colorsArr[color];
-    })
-    
 }
-paintBlocks();
 </script> 
 </body>
 </html>
